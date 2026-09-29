@@ -58,6 +58,14 @@ select,input[type=search]{font:inherit;font-size:13px;padding:6px 10px;border:1p
 .kpi .v{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1.05}
 .kpi .d{font-size:12.5px;color:var(--ink-2)}
 .kpi.crit{border-top:3px solid var(--crit)} .kpi.warn{border-top:3px solid var(--warn)} .kpi.good{border-top:3px solid var(--good)} .kpi.neu{border-top:3px solid var(--accent)}
+.kpi-base{grid-column:span 2}
+@media (min-width:1100px){.kpis{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media (max-width:560px){.kpi-base{grid-column:1/-1}}
+.stk{display:flex;gap:2px;height:10px;margin-top:6px;border-radius:4px;overflow:hidden}
+.stk span{height:100%}
+.brk{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.brk i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.brk b{color:var(--ink);font-variant-numeric:tabular-nums}.brk em{font-style:normal;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;margin-top:16px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
 .c12{grid-column:span 12}.c7{grid-column:span 7}.c5{grid-column:span 5}.c6{grid-column:span 6}
@@ -255,14 +263,18 @@ function renderKPIs(rows){
   const acc = pct(ok,ok+bad);
   const cls = acc>=80?"good":acc>=60?"warn":"crit";
   const K = [
-    ["neu","OTs únicas monitoreadas",uni.length.toLocaleString("es-EC"),`${rows.filter(gOK).length.toLocaleString("es-EC")} filas en la base filtrada`],
     [cls,"Acierto de la herramienta",(ok+bad?acc.toLocaleString("es-EC")+"%":"—"),`${ok} correctas de ${ok+bad} evaluadas`],
     [bad?"crit":"good","Asignaciones incorrectas",bad,`${ev.filter(r=>r.res==="INCORRECTA"&&r.sol==="CORREGIDO").length} ya corregidas`],
-    [rev?"warn":"good","En revisión",rev,"Sin resultado confirmado"],
+    [rev?"warn":"good","En revisión",rev,"Parte de las pendientes de revisar"],
     [sin?"warn":"good","OTs sin gestor registrado",sin,`${pct(sin,uni.length)}% de las OTs únicas`],
     ["neu","Rezagadas (arrastre)",rez,`${pct(rez,uni.length)}% del universo`],
   ];
-  $("#kpis").innerHTML = K.map(([c,l,v,d])=>`<div class="kpi ${c}"><span class="lb">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join("");
+  const all=rows.filter(gOK), T=all.length, nOk=all.filter(r=>r.res==="CORRECTA").length, nBad=all.filter(r=>r.res==="INCORRECTA").length, nPen=T-nOk-nBad;
+  const f=n=>n.toLocaleString("es-EC"), w=n=>T?(n/T*100):0;
+  const base=`<div class="kpi neu kpi-base"><span class="lb">Base total ingresada</span><span class="v">${f(T)}</span><span class="d">registros en BASE MONITOREO${st.fecha!=="ALL"||st.tipo!=="ALL"||st.grupo!=="ALL"?" (filtrados)":""}</span>
+    <div class="stk" role="img" aria-label="Correctas ${nOk}, incorrectas ${nBad}, pendientes ${nPen}"><span style="width:${w(nOk)}%;background:var(--good)" data-tip="Correctas: ${f(nOk)} (${pct(nOk,T)}%)"></span><span style="width:${w(nBad)}%;background:var(--crit)" data-tip="Incorrectas: ${f(nBad)} (${pct(nBad,T)}%)"></span><span style="width:${w(nPen)}%;background:var(--muted);opacity:.45" data-tip="Pendientes de revisar: ${f(nPen)} (${pct(nPen,T)}%)"></span></div>
+    <div class="brk"><span><i style="background:var(--good)"></i>Correctas <b>${f(nOk)}</b> <em>${pct(nOk,T)}%</em></span><span><i style="background:var(--crit)"></i>Incorrectas <b>${f(nBad)}</b> <em>${pct(nBad,T)}%</em></span><span><i style="background:var(--muted);opacity:.45"></i>Pendientes de revisar <b>${f(nPen)}</b> <em>${pct(nPen,T)}%</em></span></div></div>`;
+  $("#kpis").innerHTML = base + K.map(([c,l,v,d])=>`<div class="kpi ${c}"><span class="lb">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join("");
 }
 
 /* ---------- Alerts ---------- */
