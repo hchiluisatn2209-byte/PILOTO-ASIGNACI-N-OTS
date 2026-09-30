@@ -156,7 +156,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
       <div class="alerts" id="alerts"></div>
     </section>
     <section class="panel c5">
-      <div class="ph"><div><h2>Resultado de la asignación</h2><p class="hint">OTs revisadas con RESULTADO DE ASIGNACIÓN o ESTADO DE SOLUCIÓN registrado.</p></div></div>
+      <div class="ph"><div><h2>Resultado de la asignación</h2><p class="hint">Distribución de la base total ingresada según RESULTADO DE ASIGNACIÓN; mismos % que los indicadores.</p></div></div>
       <div id="donut"></div>
       <div><h3 style="margin-bottom:8px">Motivo del error</h3><div class="hbars" id="motivos"></div></div>
     </section>
@@ -173,7 +173,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
     <section class="panel c12">
       <div class="ph"><div><h2>Usuario asignado por la herramienta</h2><p class="hint">Qué pasó con cada asignación inicial: acierto, motivo del error, detalle, acción y a quién se corrigió.</p></div>
       <div class="legend"><span><i style="background:var(--good)"></i>Correcta</span><span><i style="background:var(--crit)"></i>Incorrecta</span><span><i style="background:var(--warn)"></i>En revisión</span></div></div>
-      <div class="tw scroll"><table id="t-herr"><thead><tr><th>Usuario herramienta</th><th>Grupo</th><th class="num">Revisadas</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">En revisión</th><th>Acierto</th><th>Motivo · detalle</th><th>Acción / solución</th><th>Corregido a</th></tr></thead><tbody></tbody></table></div>
+      <div class="tw scroll"><table id="t-herr"><thead><tr><th>Usuario herramienta</th><th>Grupo</th><th class="num">Registros</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">En revisión</th><th>Acierto</th><th>Motivo · detalle</th><th>Acción / solución</th><th>Corregido a</th></tr></thead><tbody></tbody></table></div>
     </section>
 
     <section class="panel c6">
@@ -227,7 +227,8 @@ const nom = u=> POOL[u] ? POOL[u]["APELLIDOS Y NOMBRES"] : "";
 const pct = (a,b)=> b? Math.round(a*1000/b)/10 : 0;
 const fmtD = s=> s ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(2,4)+(s.length>10?" "+s.slice(11,16):"") : "—";
 const short = f=> f.slice(0,5);
-const isEval = r=> r.res || r.sol==="EN REVISIÓN";
+const isEval = r=> !!r.res;          // tiene RESULTADO DE ASIGNACIÓN
+const isRev  = r=> !r.res;           // En revisión = RESULTADO DE ASIGNACIÓN vacío
 
 function seg(el,opts,key){
   el.innerHTML = opts.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${st[key]===v}">${l}</button>`).join("");
@@ -256,17 +257,17 @@ const gOK = r=> st.grupo==="ALL" || grp(r.fin)===st.grupo || grp(r.herr)===st.gr
 /* ---------- KPIs ---------- */
 function renderKPIs(rows){
   const all=rows.filter(gOK), T=all.length, nOk=all.filter(r=>r.res==="CORRECTA").length, nBad=all.filter(r=>r.res==="INCORRECTA").length, nPen=T-nOk-nBad;
-  const nRev=all.filter(r=>!r.res&&r.sol==="EN REVISIÓN").length, nFix=all.filter(r=>r.res==="INCORRECTA"&&r.sol==="CORREGIDO").length;
+  const nRev=all.filter(isRev).length, nFix=all.filter(r=>r.res==="INCORRECTA"&&r.sol==="CORREGIDO").length;
   const f=n=>n.toLocaleString("es-EC"), P=n=>pct(n,T).toLocaleString("es-EC")+"%", w=n=>T?(n/T*100):0;
   const accEv=pct(nOk,nOk+nBad), cls=accEv>=80?"good":accEv>=60?"warn":"crit";
   const K = [
     [cls,"Acierto de la herramienta",T?P(nOk):"—",`${f(nOk)} correctas de ${f(T)} ingresadas · ${nOk+nBad?accEv.toLocaleString("es-EC")+"% sobre las "+f(nOk+nBad)+" ya evaluadas":"sin evaluadas"}`],
     [nBad?"crit":"good","Asignaciones incorrectas",f(nBad),`${P(nBad)} de ${f(T)} ingresadas · ${f(nFix)} ya corregidas`],
-    [nRev?"warn":"good","En revisión",f(nRev),`${P(nRev)} de ${f(T)} ingresadas · parte de las pendientes de revisar`],
+    [nRev?"warn":"good","En revisión",f(nRev),`${P(nRev)} de ${f(T)} ingresadas · sin RESULTADO DE ASIGNACIÓN`],
   ];
   const base=`<div class="kpi neu kpi-base"><span class="lb">Base total ingresada</span><span class="v">${f(T)}</span><span class="d">registros en BASE MONITOREO${st.fecha!=="ALL"||st.tipo!=="ALL"||st.grupo!=="ALL"?" (filtrados)":""}</span>
-    <div class="stk" role="img" aria-label="Correctas ${nOk}, incorrectas ${nBad}, pendientes ${nPen}"><span style="width:${w(nOk)}%;background:var(--good)" data-tip="Correctas: ${f(nOk)} (${P(nOk)})"></span><span style="width:${w(nBad)}%;background:var(--crit)" data-tip="Incorrectas: ${f(nBad)} (${P(nBad)})"></span><span style="width:${w(nPen)}%;background:var(--muted);opacity:.45" data-tip="Pendientes de revisar: ${f(nPen)} (${P(nPen)})"></span></div>
-    <div class="brk"><span><i style="background:var(--good)"></i>Correctas <b>${f(nOk)}</b> <em>${P(nOk)}</em></span><span><i style="background:var(--crit)"></i>Incorrectas <b>${f(nBad)}</b> <em>${P(nBad)}</em></span><span><i style="background:var(--muted);opacity:.45"></i>Pendientes de revisar <b>${f(nPen)}</b> <em>${P(nPen)}</em></span></div></div>`;
+    <div class="stk" role="img" aria-label="Correctas ${nOk}, incorrectas ${nBad}, en revisión ${nPen}"><span style="width:${w(nOk)}%;background:var(--good)" data-tip="Correctas: ${f(nOk)} (${P(nOk)})"></span><span style="width:${w(nBad)}%;background:var(--crit)" data-tip="Incorrectas: ${f(nBad)} (${P(nBad)})"></span><span style="width:${w(nPen)}%;background:var(--warn)" data-tip="En revisión: ${f(nPen)} (${P(nPen)})"></span></div>
+    <div class="brk"><span><i style="background:var(--good)"></i>Correctas <b>${f(nOk)}</b> <em>${P(nOk)}</em></span><span><i style="background:var(--crit)"></i>Incorrectas <b>${f(nBad)}</b> <em>${P(nBad)}</em></span><span><i style="background:var(--warn)"></i>En revisión <b>${f(nPen)}</b> <em>${P(nPen)}</em></span></div></div>`;
   $("#kpis").innerHTML = base + K.map(([c,l,v,d])=>`<div class="kpi ${c}"><span class="lb">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join("");
 }
 
@@ -274,7 +275,8 @@ function renderKPIs(rows){
 function renderAlerts(rows){
   const A=[]; const ev = rows.filter(r=>isEval(r)&&gOK(r));
   const ok = ev.filter(r=>r.res==="CORRECTA").length, bad = ev.filter(r=>r.res==="INCORRECTA");
-  if(ok+bad.length){const a=pct(ok,ok+bad.length); A.push([a<60?"crit":a<80?"warn":"good", `${a.toLocaleString("es-EC")}%`, "Acierto global de la herramienta", `${bad.length} de ${ok+bad.length} OTs evaluadas requirieron reasignación manual.`]);}
+  const TT=rows.filter(gOK).length;
+  if(TT&&ok+bad.length){const a=pct(ok,TT), ae=pct(ok,ok+bad.length); A.push([ae<60?"crit":ae<80?"warn":"good", `${a.toLocaleString("es-EC")}%`, "Acierto de la herramienta", `${ok.toLocaleString("es-EC")} correctas de ${TT.toLocaleString("es-EC")} ingresadas. ${bad.length} requirieron reasignación manual; ${(TT-ok-bad.length).toLocaleString("es-EC")} en revisión.`]);}
   // by herramienta user + motivo
   const m = new Map();
   bad.forEach(r=>{const k=r.herr+"|"+r.mot+"|"+r.corr; const o=m.get(k)||{herr:r.herr,mot:r.mot,corr:r.corr,det:r.det,acc:r.acc,n:0,cli:new Set()}; o.n++; o.cli.add(r.cli); m.set(k,o);});
@@ -282,8 +284,8 @@ function renderAlerts(rows){
     const sev = o.mot==="PROBLEMA DE PLATAFORMA"||o.mot==="OTRO"?"crit":o.n>=10?"crit":"warn";
     A.push([sev, o.n, `${o.herr||"(sin usuario)"} → ${o.corr||"—"} · ${o.mot||"sin motivo registrado"}`, `${esc(o.det)}${o.acc?" · Acción: "+esc(o.acc):""} · Cliente: ${esc([...o.cli].join(", "))}`]);
   });
-  const rev = rows.filter(r=>r.sol==="EN REVISIÓN"&&gOK(r));
-  if(rev.length){const us=[...new Set(rev.map(r=>r.herr))]; A.push(["warn",rev.length,`OTs en revisión sin resultado (${us.join(", ")})`, `Clientes: ${esc([...new Set(rev.map(r=>r.cli))].join(", "))}. Confirmar asignación antes del próximo corte.`]);}
+  const rev = rows.filter(r=>isRev(r)&&gOK(r));
+  if(rev.length){const cu={}; rev.forEach(r=>{const u=r.herr||"(sin usuario)"; cu[u]=(cu[u]||0)+1;}); A.push(["warn",rev.length,"Registros en revisión (sin RESULTADO DE ASIGNACIÓN)", "Por usuario asignado por herramienta: "+Object.entries(cu).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([u,n])=>`${esc(u)} (${n})`).join(", ")+(Object.keys(cu).length>8?"…":"")+". Completar la revisión antes del próximo corte."]);}
   const okNoUser = ev.filter(r=>r.res==="CORRECTA"&&!r.herr);
   if(okNoUser.length) A.push(["warn",okNoUser.length,"Marcadas CORRECTA sin usuario de herramienta","No se puede atribuir la carga: completar USUARIO ASIGNADO POR HERRAMIENTA."]);
   const uni = latestOnly(rows).filter(gOK);
@@ -313,15 +315,16 @@ function renderAlerts(rows){
 /* ---------- Donut + motivos ---------- */
 function renderResult(rows){
   const ev = rows.filter(r=>isEval(r)&&gOK(r));
-  const parts=[["Correcta",ev.filter(r=>r.res==="CORRECTA").length,"var(--good)"],["Incorrecta",ev.filter(r=>r.res==="INCORRECTA").length,"var(--crit)"],["En revisión",ev.filter(r=>!r.res&&r.sol==="EN REVISIÓN").length,"var(--warn)"]];
-  const tot=parts.reduce((a,p)=>a+p[1],0);
-  if(!tot){$("#donut").innerHTML=`<div class="note">No hay OTs revisadas en este filtro. Las revisiones con resultado se registraron el <b>29/09/2026</b>.</div>`; $("#motivos").innerHTML=""; return;}
+  const all=rows.filter(gOK), nRev=all.filter(isRev).length;
+  const parts=[["Correcta",all.filter(r=>r.res==="CORRECTA").length,"var(--good)"],["Incorrecta",all.filter(r=>r.res==="INCORRECTA").length,"var(--crit)"],["En revisión",nRev,"var(--warn)"]];
+  const tot=all.length, pc=n=>pct(n,tot).toLocaleString("es-EC")+"%";
+  if(!tot){$("#donut").innerHTML=`<div class="note">No hay registros en este filtro.</div>`; $("#motivos").innerHTML=""; return;}
   const R=62,W=16,C=2*Math.PI*R; let off=0;
-  const arcs=parts.filter(p=>p[1]).map(([l,n,c])=>{const len=C*n/tot; const gap=parts.filter(p=>p[1]).length>1?2:0; const s=`<circle r="${R}" cx="80" cy="80" fill="none" stroke="${c}" stroke-width="${W}" stroke-dasharray="${Math.max(len-gap,0)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${l}: ${n} (${pct(n,tot)}%)"></circle>`; off+=len; return s;}).join("");
+  const arcs=parts.filter(p=>p[1]).map(([l,n,c])=>{const len=C*n/tot; const gap=parts.filter(p=>p[1]).length>1?2:0; const s=`<circle r="${R}" cx="80" cy="80" fill="none" stroke="${c}" stroke-width="${W}" stroke-dasharray="${Math.max(len-gap,0)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-tip="${l}: ${n.toLocaleString("es-EC")} (${pc(n)})"></circle>`; off+=len; return s;}).join("");
   $("#donut").innerHTML=`<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
    <svg viewBox="0 0 160 160" width="150" height="150" role="img" aria-label="Distribución del resultado"><circle r="${R}" cx="80" cy="80" fill="none" stroke="var(--grid)" stroke-width="${W}"></circle>${arcs}
-   <text x="80" y="78" text-anchor="middle" style="font-family:var(--f-display);font-weight:700;font-size:26px;fill:var(--ink)">${tot}</text><text x="80" y="96" text-anchor="middle" style="font-size:10px;fill:var(--muted);letter-spacing:.08em">REVISADAS</text></svg>
-   <div style="display:grid;gap:8px;min-width:0">${parts.map(([l,n,c])=>`<div style="display:flex;gap:10px;align-items:baseline"><i style="width:10px;height:10px;border-radius:3px;background:${c};display:inline-block"></i><span style="min-width:90px">${l}</span><b style="font-variant-numeric:tabular-nums">${n}</b><span class="hint" style="margin:0">${pct(n,tot)}%</span></div>`).join("")}</div></div>`;
+   <text x="80" y="78" text-anchor="middle" style="font-family:var(--f-display);font-weight:700;font-size:26px;fill:var(--ink)">${tot.toLocaleString("es-EC")}</text><text x="80" y="96" text-anchor="middle" style="font-size:10px;fill:var(--muted);letter-spacing:.08em">INGRESADAS</text></svg>
+   <div style="display:grid;gap:8px;min-width:0">${parts.map(([l,n,c])=>`<div style="display:flex;gap:10px;align-items:baseline"><i style="width:10px;height:10px;border-radius:3px;background:${c};display:inline-block"></i><span style="min-width:90px">${l}</span><b style="font-variant-numeric:tabular-nums">${n.toLocaleString("es-EC")}</b><span class="hint" style="margin:0">${pc(n)}</span></div>`).join("")}</div></div>`;
   const mc={}; ev.filter(r=>r.res==="INCORRECTA").forEach(r=>mc[r.mot||"(sin motivo)"]=(mc[r.mot||"(sin motivo)"]||0)+1);
   const arr=Object.entries(mc).sort((a,b)=>b[1]-a[1]); const mx=Math.max(1,...arr.map(a=>a[1]));
   $("#motivos").innerHTML = arr.length? arr.map(([m,n])=>`<div class="hb"><span class="nm">${esc(m)}</span><div class="tr"><div class="sg" style="width:${n/mx*100}%;background:var(--crit);border-radius:0 4px 4px 0" data-tip="${esc(m)}: ${n} OTs"></div></div><span class="val">${n}</span></div>`).join("") : `<p class="hint">Sin errores registrados.</p>`;
@@ -354,8 +357,8 @@ function renderCarga(rows){
 
 /* ---------- Herramienta table ---------- */
 function renderHerr(rows){
-  const ev = rows.filter(r=>isEval(r)&&r.herr!==undefined&&gOK(r));
-  const m=new Map(); ev.forEach(r=>{const u=r.herr||"(sin usuario)"; const o=m.get(u)||{u,n:0,ok:0,bad:0,rev:0,mot:{},acc:new Set(),to:{}}; o.n++; if(r.res==="CORRECTA")o.ok++; if(r.res==="INCORRECTA"){o.bad++; const k=r.mot+(r.det?" — "+r.det:""); o.mot[k]=(o.mot[k]||0)+1; if(r.acc)o.acc.add(r.acc); if(r.corr)o.to[r.corr]=(o.to[r.corr]||0)+1;} if(r.sol==="EN REVISIÓN")o.rev++; m.set(u,o);});
+  const ev = rows.filter(gOK);
+  const m=new Map(); ev.forEach(r=>{const u=r.herr||"(sin usuario)"; const o=m.get(u)||{u,n:0,ok:0,bad:0,rev:0,mot:{},acc:new Set(),to:{}}; o.n++; if(r.res==="CORRECTA")o.ok++; if(r.res==="INCORRECTA"){o.bad++; const k=r.mot+(r.det?" — "+r.det:""); o.mot[k]=(o.mot[k]||0)+1; if(r.acc)o.acc.add(r.acc); if(r.corr)o.to[r.corr]=(o.to[r.corr]||0)+1;} if(isRev(r))o.rev++; m.set(u,o);});
   const list=[...m.values()].sort((a,b)=>b.bad-a.bad||b.n-a.n);
   $("#t-herr tbody").innerHTML = list.length? list.map(o=>{const tot=o.n||1; const ac=o.ok+o.bad?pct(o.ok,o.ok+o.bad):null;
     const pill = ac==null?`<span class="pill rev">⏳ pendiente</span>`: ac>=80?`<span class="pill ok">✓ ${ac}%</span>`:`<span class="pill bad">✕ ${ac}%</span>`;
@@ -405,12 +408,12 @@ function renderDetail(rows){
   $("#det-tabs").innerHTML=tabs.map(([v,l])=>`<button class="tab" role="tab" aria-selected="${st.tab===v}" data-v="${v}">${l}</button>`).join("");
   $("#det-tabs").onclick=e=>{const b=e.target.closest("button"); if(!b)return; st.tab=b.dataset.v; renderDetail(current());};
   let x=rows.filter(gOK);
-  if(st.tab==="BAD") x=x.filter(r=>r.res==="INCORRECTA"); if(st.tab==="REV") x=x.filter(r=>r.sol==="EN REVISIÓN"); if(st.tab==="SIN") x=x.filter(r=>!r.fin);
+  if(st.tab==="BAD") x=x.filter(r=>r.res==="INCORRECTA"); if(st.tab==="REV") x=x.filter(isRev); if(st.tab==="SIN") x=x.filter(r=>!r.fin);
   if(st.q) x=x.filter(r=>[r.cli,r.login,r.herr,r.corr,r.fin,r.prod,r.suc,r.ot].join(" ").toLowerCase().includes(st.q));
   x.sort((a,b)=>ORD[b.fr]-ORD[a.fr]||(b.res?1:0)-(a.res?1:0));
   const LIM=300;
   $("#det-hint").textContent=`${x.length.toLocaleString("es-EC")} filas${x.length>LIM?` · se muestran las primeras ${LIM}; use la búsqueda para acotar`:""}.`;
-  const pill=r=> r.res==="CORRECTA"?`<span class="pill ok">✓ Correcta</span>`: r.res==="INCORRECTA"?`<span class="pill bad">✕ Incorrecta</span>`: r.sol==="EN REVISIÓN"?`<span class="pill rev">⏳ En revisión</span>`:`<span class="pill na">Sin revisar</span>`;
+  const pill=r=> r.res==="CORRECTA"?`<span class="pill ok">✓ Correcta</span>`: r.res==="INCORRECTA"?`<span class="pill bad">✕ Incorrecta</span>`: `<span class="pill rev">⏳ En revisión</span>`;
   $("#t-det tbody").innerHTML=x.slice(0,LIM).map(r=>`<tr><td class="mono">${short(r.fr)}</td><td>${r.tipo==="NUEVA"?"Nueva":"Rezagada"}</td><td class="mono">${fmtD(r.fp)}</td><td class="num">${r.age??"—"}</td><td style="min-width:220px">${esc(r.cli)}<div class="hint mono" style="margin:0">${esc(r.login)}</div></td><td>${esc(r.prod)}</td><td>${esc(r.suc)}</td><td class="mono">${esc(r.herr)||"—"}</td><td>${pill(r)}</td><td>${esc(r.mot&&r.mot!=="NO APLICA"?r.mot:"")||"—"}</td><td class="mono">${r.fin?esc(r.fin)+(r.corr?' <span class="hint">(corregido)</span>':''):'<span class="pill rev">sin gestor</span>'}</td></tr>`).join("")||`<tr><td colspan="11" class="hint" style="padding:14px">Sin filas para este filtro.</td></tr>`;
 }
 
