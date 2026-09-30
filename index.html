@@ -59,7 +59,7 @@ select,input[type=search]{font:inherit;font-size:13px;padding:6px 10px;border:1p
 .kpi .d{font-size:12.5px;color:var(--ink-2)}
 .kpi.crit{border-top:3px solid var(--crit)} .kpi.warn{border-top:3px solid var(--warn)} .kpi.good{border-top:3px solid var(--good)} .kpi.neu{border-top:3px solid var(--accent)}
 .kpi-base{grid-column:span 2}
-@media (min-width:1100px){.kpis{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media (min-width:900px){.kpis{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media (max-width:560px){.kpi-base{grid-column:1/-1}}
 .stk{display:flex;gap:2px;height:10px;margin-top:6px;border-radius:4px;overflow:hidden}
 .stk span{height:100%}
@@ -255,25 +255,18 @@ const gOK = r=> st.grupo==="ALL" || grp(r.fin)===st.grupo || grp(r.herr)===st.gr
 
 /* ---------- KPIs ---------- */
 function renderKPIs(rows){
-  const uni = latestOnly(rows).filter(gOK);
-  const ev = rows.filter(r=>isEval(r)&&gOK(r));
-  const ok = ev.filter(r=>r.res==="CORRECTA").length, bad = ev.filter(r=>r.res==="INCORRECTA").length, rev = ev.filter(r=>!r.res&&r.sol==="EN REVISIÓN").length;
-  const sin = uni.filter(r=>!r.fin).length;
-  const rez = uni.filter(r=>r.tipo==="REZAGADA").length;
-  const acc = pct(ok,ok+bad);
-  const cls = acc>=80?"good":acc>=60?"warn":"crit";
-  const K = [
-    [cls,"Acierto de la herramienta",(ok+bad?acc.toLocaleString("es-EC")+"%":"—"),`${ok} correctas de ${ok+bad} evaluadas`],
-    [bad?"crit":"good","Asignaciones incorrectas",bad,`${ev.filter(r=>r.res==="INCORRECTA"&&r.sol==="CORREGIDO").length} ya corregidas`],
-    [rev?"warn":"good","En revisión",rev,"Parte de las pendientes de revisar"],
-    [sin?"warn":"good","OTs sin gestor registrado",sin,`${pct(sin,uni.length)}% de las OTs únicas`],
-    ["neu","Rezagadas (arrastre)",rez,`${pct(rez,uni.length)}% del universo`],
-  ];
   const all=rows.filter(gOK), T=all.length, nOk=all.filter(r=>r.res==="CORRECTA").length, nBad=all.filter(r=>r.res==="INCORRECTA").length, nPen=T-nOk-nBad;
-  const f=n=>n.toLocaleString("es-EC"), w=n=>T?(n/T*100):0;
+  const nRev=all.filter(r=>!r.res&&r.sol==="EN REVISIÓN").length, nFix=all.filter(r=>r.res==="INCORRECTA"&&r.sol==="CORREGIDO").length;
+  const f=n=>n.toLocaleString("es-EC"), P=n=>pct(n,T).toLocaleString("es-EC")+"%", w=n=>T?(n/T*100):0;
+  const accEv=pct(nOk,nOk+nBad), cls=accEv>=80?"good":accEv>=60?"warn":"crit";
+  const K = [
+    [cls,"Acierto de la herramienta",T?P(nOk):"—",`${f(nOk)} correctas de ${f(T)} ingresadas · ${nOk+nBad?accEv.toLocaleString("es-EC")+"% sobre las "+f(nOk+nBad)+" ya evaluadas":"sin evaluadas"}`],
+    [nBad?"crit":"good","Asignaciones incorrectas",f(nBad),`${P(nBad)} de ${f(T)} ingresadas · ${f(nFix)} ya corregidas`],
+    [nRev?"warn":"good","En revisión",f(nRev),`${P(nRev)} de ${f(T)} ingresadas · parte de las pendientes de revisar`],
+  ];
   const base=`<div class="kpi neu kpi-base"><span class="lb">Base total ingresada</span><span class="v">${f(T)}</span><span class="d">registros en BASE MONITOREO${st.fecha!=="ALL"||st.tipo!=="ALL"||st.grupo!=="ALL"?" (filtrados)":""}</span>
-    <div class="stk" role="img" aria-label="Correctas ${nOk}, incorrectas ${nBad}, pendientes ${nPen}"><span style="width:${w(nOk)}%;background:var(--good)" data-tip="Correctas: ${f(nOk)} (${pct(nOk,T)}%)"></span><span style="width:${w(nBad)}%;background:var(--crit)" data-tip="Incorrectas: ${f(nBad)} (${pct(nBad,T)}%)"></span><span style="width:${w(nPen)}%;background:var(--muted);opacity:.45" data-tip="Pendientes de revisar: ${f(nPen)} (${pct(nPen,T)}%)"></span></div>
-    <div class="brk"><span><i style="background:var(--good)"></i>Correctas <b>${f(nOk)}</b> <em>${pct(nOk,T)}%</em></span><span><i style="background:var(--crit)"></i>Incorrectas <b>${f(nBad)}</b> <em>${pct(nBad,T)}%</em></span><span><i style="background:var(--muted);opacity:.45"></i>Pendientes de revisar <b>${f(nPen)}</b> <em>${pct(nPen,T)}%</em></span></div></div>`;
+    <div class="stk" role="img" aria-label="Correctas ${nOk}, incorrectas ${nBad}, pendientes ${nPen}"><span style="width:${w(nOk)}%;background:var(--good)" data-tip="Correctas: ${f(nOk)} (${P(nOk)})"></span><span style="width:${w(nBad)}%;background:var(--crit)" data-tip="Incorrectas: ${f(nBad)} (${P(nBad)})"></span><span style="width:${w(nPen)}%;background:var(--muted);opacity:.45" data-tip="Pendientes de revisar: ${f(nPen)} (${P(nPen)})"></span></div>
+    <div class="brk"><span><i style="background:var(--good)"></i>Correctas <b>${f(nOk)}</b> <em>${P(nOk)}</em></span><span><i style="background:var(--crit)"></i>Incorrectas <b>${f(nBad)}</b> <em>${P(nBad)}</em></span><span><i style="background:var(--muted);opacity:.45"></i>Pendientes de revisar <b>${f(nPen)}</b> <em>${P(nPen)}</em></span></div></div>`;
   $("#kpis").innerHTML = base + K.map(([c,l,v,d])=>`<div class="kpi ${c}"><span class="lb">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join("");
 }
 
