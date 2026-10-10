@@ -158,7 +158,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
     <section class="panel c5">
       <div class="ph"><div><h2>Resultado de la asignación</h2><p class="hint">Distribución de la base total ingresada según RESULTADO DE ASIGNACIÓN; mismos % que los indicadores.</p></div></div>
       <div id="donut"></div>
-      <div><h3 style="margin-bottom:8px">Motivo del error</h3><div class="hbars" id="motivos"></div></div>
+      <div><h3 style="margin-bottom:8px">Seguimientos Asignaciones</h3><div class="hbars" id="motivos"></div></div>
     </section>
 
     <section class="panel c12">
@@ -500,7 +500,8 @@ const NK = s=> String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").rep
 const ALIAS = {
   "DETALLE DEL MOTIVO": ["DETALLE DEL MOTIVO ERROR","DETALLE DEL MOTIVO","DETALLE MOTIVO ERROR","DETALLE DEL ERROR"],
   "ACCION / SOLUCION": ["ACCION / SOLUCION","ACCION/SOLUCION","ACCION SOLUCION"],
-  "TIPO GESTION": ["TIPO GESTION","TIPO DE GESTION"]
+  "TIPO GESTION": ["TIPO GESTION","TIPO DE GESTION"],
+  "MOTIVO DEL ERROR": ["MOTIVO DEL ERROR","SEGUIMIENTOS ASIGNACIONES","SEGUIMIENTO ASIGNACIONES"]
 };
 function csvRows(text){ return Papa.parse(text.replace(/\r/g,""),{skipEmptyLines:false}).data; }
 function buildData(baseTxt, poolTxt){
