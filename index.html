@@ -528,11 +528,17 @@ function buildData(baseTxt, poolTxt){
       cli:g("CLIENTE"), login:g("LOGIN"), prod:g("PRODUCTO"), suc:g("TECNICA_SUCURSAL").replace("TELCONET - ",""),
       k:base, ot:g("ID_SERVICIO")||"—"});
   });
-  const P=csvRows(poolTxt); const ph=P[0].map(x=>x.trim()); const pool=[];
-  P.slice(1).forEach(arr=>{ const p={}; ph.forEach((k,i)=>p[k]=String(arr[i]??"").trim()); if(!p.USER) return;
-    let est=p.ESTADO||""; if(est===p.USER) est="";
-    pool.push({GRUPOS:p.GRUPOS||"",CIUDAD:p.CIUDAD||"",USER:p.USER,TIPO:p["TIPO_ASIGNACIÓN"]||"",ESTADO:est,
-      nd:/MATERNIDAD|VACACION|REPOSO|LICENCIA|INACTIV|PERMISO/i.test(est),"APELLIDOS Y NOMBRES":p["APELLIDOS Y NOMBRES"]||""}); });
+  /* POOL GESTORES: columnas tolerantes. Si no existe GRUPOS, el grupo se deduce del coordinador (COORD / COORDINADOR). */
+  const COORD_GRUPO={cralarcon:"O&M",ganaranjo:"IMPLEMENTACIÓN",hchiluisa:"PLANIFICACIÓN"};
+  const P=csvRows(poolTxt); const ph=P[0].map(NK); const pool=[];
+  const pg=(p,...ks)=>{ for(const k of ks){ const v=p[NK(k)]; if(v) return v; } return ""; };
+  P.slice(1).forEach(arr=>{ const p={}; ph.forEach((k,i)=>{ if(k&&!(k in p)) p[k]=String(arr[i]??"").trim(); }); const user=pg(p,"USER","USUARIO"); if(!user||NK(user)==="USER") return;
+    const coord=pg(p,"COORD","COORDINADOR").toLowerCase();
+    const grupo=pg(p,"GRUPOS","GRUPO")||COORD_GRUPO[coord]||(coord?"Coord. "+coord:"Sin grupo");
+    const estTxt=[pg(p,"ESTADO"),pg(p,"DISPONIBILIDAD"),pg(p,"ESTADO APP"),pg(p,"OBSERVACIONES")].filter(v=>v&&v!==user&&!/^(OPERATIVO|ACTIVO|DISPONIBLE)$/i.test(v));
+    const est=[...new Set(estTxt)].join(" · ");
+    pool.push({GRUPOS:grupo,CIUDAD:pg(p,"CIUDAD"),USER:user,TIPO:pg(p,"TIPO_ASIGNACION","TIPO_ASIGNACIÓN")||"POOL",ESTADO:est,
+      nd:/MATERNIDAD|VACACION|REPOSO|LICENCIA|INACTIV|PERMISO|NO DISPONIBLE|BAJA|SALIDA/i.test(est),"APELLIDOS Y NOMBRES":pg(p,"APELLIDOS Y NOMBRES")}); });
   const fechas=[...new Set(rows.map(r=>r.fr).filter(f=>parseFecha(f)))].sort((a,b)=>parseFecha(a)-parseFecha(b));
   const now=new Date();
   return {rows,pool,fechas,
