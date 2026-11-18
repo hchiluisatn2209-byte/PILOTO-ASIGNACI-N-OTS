@@ -132,14 +132,31 @@ td.mono{font-family:var(--f-mono);font-size:12px}
 .maintabs button:focus-visible{outline:2px solid var(--s-nueva);outline-offset:-2px}
 .maintabs .cnt{font-family:var(--f-mono);font-weight:500;font-size:11px;color:var(--muted);margin-left:6px}
 .filters{position:static}
-.fg-fecha{flex-basis:100%;flex-direction:column;align-items:flex-start;gap:8px}
-.fcal{display:grid;gap:10px;min-width:0;width:100%}
+.fg-fecha{flex-basis:100%;min-width:0}
+.fcalw{width:100%;min-width:0}
+.fdet{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fdet>summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:9px 14px;cursor:pointer;user-select:none}
+.fdet>summary::-webkit-details-marker{display:none}
+.fdet>summary:focus-visible{outline:2px solid var(--s-nueva);outline-offset:2px;border-radius:10px}
+.fs-ic{color:var(--accent);display:inline-flex}
+.fs-lb{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.fs-v{font-family:var(--f-display);font-size:15px}
+.fs-n{font-size:12.5px;color:var(--ink-2)}
+.fs-chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+.fdet[open] .fs-chev{transform:rotate(180deg)}
+.fdet[open]>summary{border-bottom:1px solid var(--line)}
+.fcal{display:grid;gap:10px;padding:12px 14px 14px;min-width:0}
 .cal-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.cal-sub{gap:6px 18px}
+.cal-hint{font-size:12.5px;color:var(--ink-2)}
+.rg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.rg select{text-transform:none;letter-spacing:0;font-weight:400}
 .cal-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
 .cal-leg b{color:var(--ink)}
 .cal-row{display:flex;flex-wrap:wrap;gap:12px}
 .cal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px}
-.cal-h{font-family:var(--f-display);font-weight:700;font-size:13px;margin-bottom:6px}
+.cal-h{font:inherit;font-family:var(--f-display);font-weight:700;font-size:13px;margin:0 0 6px;padding:2px 6px;margin-left:-6px;border:0;border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.cal-h:hover{background:var(--surface-2)}
 .cal-g{display:grid;grid-template-columns:repeat(7,30px);gap:3px}
 .dw{font-family:var(--f-mono);font-size:10px;color:var(--muted);text-align:center;padding-bottom:2px}
 .cd{height:28px;display:grid;place-items:center;border-radius:6px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);border:0;padding:0;font-family:inherit;background:transparent;position:relative}
@@ -148,7 +165,10 @@ td.mono{font-family:var(--f-mono);font-size:12px}
 .cd.fuera{opacity:.35}
 .cd.has{cursor:pointer;color:var(--ink);font-weight:600;background:color-mix(in srgb,var(--s-nueva) var(--lv,30%),var(--surface))}
 .cd.has:hover{outline:2px solid var(--s-nueva);outline-offset:-2px}
-.cd.has[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);outline:none}
+.cd.has[aria-pressed="true"],.cd.ext{background:var(--accent);color:var(--accent-ink);outline:none}
+.cd.inr{background:color-mix(in srgb,var(--accent) 22%,var(--surface));color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent)}
+.cd.inr:not(.has){opacity:1;color:var(--muted)}
+.cd.pend{outline:2px dashed var(--accent);outline-offset:-2px}
 .cd:focus-visible{outline:2px solid var(--s-nueva);outline-offset:1px}
 .cd.ini{box-shadow:inset 0 0 0 2px var(--good)}
 .cd.ini::after{content:"";position:absolute;top:2px;right:2px;width:0;height:0;border-left:6px solid transparent;border-top:6px solid var(--good)}
@@ -182,7 +202,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
   </nav>
 <div id="tab-ot">
   <div class="filters" role="group" aria-label="Filtros">
-    <div class="fg fg-fecha"><span>Fecha de revisión</span><div id="f-fecha"></div></div>
+    <div class="fg fg-fecha"><div id="f-fecha"></div></div>
     <div class="fg"><span>Grupo</span><select id="f-grupo" aria-label="Grupo del pool"></select></div>
     <div class="fg"><span>Tipo gestión</span><select id="f-tg" aria-label="Tipo de gestión"></select></div>
   </div>
@@ -248,7 +268,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
 
 <div id="tab-ta" hidden>
   <div class="filters" role="group" aria-label="Filtros de tareas">
-    <div class="fg fg-fecha"><span>Fecha de revisión</span><div id="ta-f-fecha"></div></div>
+    <div class="fg fg-fecha"><div id="ta-f-fecha"></div></div>
     <div class="fg"><span>Grupo</span><select id="ta-f-grupo" aria-label="Grupo del pool"></select></div>
     <div class="fg"><span>Proceso</span><select id="ta-f-proc" aria-label="Proceso" style="max-width:260px"></select></div>
     <div class="fg"><span># Base asignación</span><select id="ta-f-ba" aria-label="Base de asignación"></select></div>
@@ -334,7 +354,7 @@ function setData(D){
   DATA=D; ROWS=D.rows.filter(r=>String(r.tipo).trim().toUpperCase()!=="REZAGADA"); /* se excluye TIPO DE OT = REZAGADA */ POOL={}; D.pool.forEach(p=>POOL[p.USER]=p);
   GRUPOS=[...new Set(D.pool.map(p=>p.GRUPOS).filter(Boolean))];
   FECHAS=D.fechas.filter(f=>ROWS.some(r=>r.fr===f)); ORD=Object.fromEntries(FECHAS.map((f,i)=>[f,i]));
-  if(st.fecha!=="ALL"&&!FECHAS.includes(st.fecha)) st.fecha="ALL";
+  if(!fValid(st.fecha,FECHAS)) st.fecha="ALL";
 }
 const st = {fecha:"ALL", tipo:"ALL", grupo:"ALL", tg:"ALL", tab:"ALL", rule:"", q:""};
 const $ = s=>document.querySelector(s);
@@ -368,30 +388,66 @@ function seg(el,opts,key){
   el.innerHTML = opts.map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${st[key]===v}">${l}</button>`).join("");
   el.onclick = e=>{const b=e.target.closest("button"); if(!b) return; st[key]=b.dataset.v; el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===st[key])); render();};
 }
-/* Selector de fechas tipo calendario: un mes por bloque (lunes a domingo).
-   Solo los días con registros se pueden elegir; el tono indica cuántos registros tiene el día;
-   el primer día con registros se marca como INICIO. */
+/* ---------- Filtro de fechas: calendario desplegable con día, rango o mes ----------
+   Valor del filtro: "ALL" · "dd/mm/aaaa" · "dd/mm/aaaa..dd/mm/aaaa" */
 const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const ymd=f=>f.slice(6)+f.slice(3,5)+f.slice(0,2);
+const fIn=(f,v)=>{ if(!v||v==="ALL") return true; if(!v.includes("..")) return f===v; const [a,b]=v.split(".."); const k=ymd(f); return k>=ymd(a)&&k<=ymd(b); };
+const fLabel=v=> !v||v==="ALL"?"Todas las fechas": v.includes("..")?v.split("..").join(" – "):v;
+const fValid=(v,fechas)=> v==="ALL" || fechas.some(f=>fIn(f,v));
 function fechaCal(el,fechas,state,key,onChange,rows,unidad){
+  const prev=el._cal||{}; el._cal={fechas,state,key,onChange,rows,unidad,mode:prev.mode||"dia",pend:null,open:!!prev.open}; calSync(el);
+}
+function calSync(el){
+  const C=el._cal; if(!C) return; const {fechas,state,key,rows,unidad}=C, v=state[key];
   const cnt={}; rows.forEach(r=>{cnt[r.fr]=(cnt[r.fr]||0)+1;});
   const pd=f=>new Date(+f.slice(6),+f.slice(3,5)-1,+f.slice(0,2)), dd=x=>String(x.getDate()).padStart(2,"0")+"/"+String(x.getMonth()+1).padStart(2,"0")+"/"+x.getFullYear();
-  el.className="fcal";
+  el.className="fcalw";
   if(!fechas.length){ el.innerHTML='<span class="hint">Sin fechas de revisión.</span>'; return; }
   const ini=fechas[0], fin=fechas[fechas.length-1], d0=pd(ini), d1=pd(fin), mx=Math.max(1,...fechas.map(f=>cnt[f]||0));
+  const selDias=fechas.filter(f=>fIn(f,v)), selN=v==="ALL"?rows.length:selDias.reduce((a,f)=>a+(cnt[f]||0),0);
+  const isR=v.includes(".."), [ra,rb]=isR?v.split(".."):[v,v];
   let cal=""; for(let m=new Date(d0.getFullYear(),d0.getMonth(),1); m<=d1; m=new Date(m.getFullYear(),m.getMonth()+1,1)){
-    const off=(m.getDay()+6)%7, n=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(); let cells="";
+    const off=(m.getDay()+6)%7, n=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(), mk=String(m.getMonth()+1).padStart(2,"0")+"/"+m.getFullYear(); let cells="";
     for(let i=0;i<off;i++) cells+='<span class="cd vac"></span>';
-    for(let day=1; day<=n; day++){ const f=dd(new Date(m.getFullYear(),m.getMonth(),day)), c=cnt[f]||0, x=new Date(m.getFullYear(),m.getMonth(),day);
-      const cls=(f===ini?" ini":"")+(x<d0||x>d1?" fuera":"")+((x.getDay()+6)%7>=5?" fds":"");
-      cells+= c ? `<button type="button" class="cd has${cls}" data-v="${f}" aria-pressed="${state[key]===f}" style="--lv:${Math.round(15+65*c/mx)}%" data-tip="${f}${f===ini?" · inicio del registro":""}<br>${c.toLocaleString("es-EC")} ${unidad}">${day}</button>`
+    for(let day=1; day<=n; day++){ const x=new Date(m.getFullYear(),m.getMonth(),day), f=dd(x), c=cnt[f]||0;
+      let cls=(f===ini?" ini":"")+(x<d0||x>d1?" fuera":"")+((x.getDay()+6)%7>=5?" fds":"");
+      if(v!=="ALL"&&isR&&fIn(f,v)) cls+=(f===ra||f===rb)?" ext":" inr";
+      if(C.pend===f) cls+=" pend";
+      const on=v!=="ALL"&&!isR&&f===v || isR&&(f===ra||f===rb);
+      cells+= c ? `<button type="button" class="cd has${cls}" data-v="${f}" aria-pressed="${on}" style="--lv:${Math.round(15+65*c/mx)}%" data-tip="${f}${f===ini?" · inicio del registro":""}<br>${c.toLocaleString("es-EC")} ${unidad}">${day}</button>`
                 : `<span class="cd${cls}">${day}</span>`; }
-    cal+=`<div class="cal"><div class="cal-h">${MESES[m.getMonth()]} ${m.getFullYear()}</div><div class="cal-g">${["L","M","X","J","V","S","D"].map(w=>`<span class="dw">${w}</span>`).join("")}${cells}</div></div>`;
+    cal+=`<div class="cal"><button type="button" class="cal-h" data-m="${mk}" title="Seleccionar todo el mes">${MESES[m.getMonth()]} ${m.getFullYear()}</button><div class="cal-g">${["L","M","X","J","V","S","D"].map(w=>`<span class="dw">${w}</span>`).join("")}${cells}</div></div>`;
   }
-  el.innerHTML=`<div class="cal-top"><div class="seg"><button type="button" data-v="ALL" aria-pressed="${state[key]==="ALL"}">Todas las fechas</button></div>
-    <span class="cal-leg"><span class="cd has ini sw"></span>Inicio del registro: <b>${ini}</b></span>
-    <span class="cal-leg"><span class="cd has sw" style="--lv:20%"></span><span class="cd has sw" style="--lv:80%"></span>Menos → más ${unidad}</span>
-    <span class="cal-leg">${fechas.length} días con revisión · último ${fin}</span></div><div class="cal-row">${cal}</div>`;
-  el.onclick=e=>{const b=e.target.closest("button[data-v]"); if(!b) return; state[key]=b.dataset.v; el.querySelectorAll("button[data-v]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===state[key])); onChange();};
+  const opt=sel=>fechas.map(f=>`<option value="${f}"${f===sel?" selected":""}>${f}</option>`).join("");
+  const hint=C.mode==="rango"?(C.pend?`Inicio: <b>${C.pend}</b>. Ahora elija el día final.`:"Toque el día inicial y luego el día final del rango."):"Toque un día para filtrar; vuelva a tocarlo para quitarlo.";
+  el.innerHTML=`<details class="fdet"${C.open?" open":""}><summary><span class="fs-ic" aria-hidden="true"><svg viewBox="0 0 16 16" width="15" height="15"><rect x="1.5" y="2.5" width="13" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 6.5h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span><span class="fs-lb">Fecha de revisión</span><b class="fs-v">${fLabel(v)}</b><span class="fs-n">${selDias.length} día${selDias.length===1?"":"s"} · ${selN.toLocaleString("es-EC")} ${unidad}</span><span class="fs-chev" aria-hidden="true">▾</span></summary>
+    <div class="fcal"><div class="cal-top">
+      <div class="seg"><button type="button" data-all="1" aria-pressed="${v==="ALL"}">Todas las fechas</button></div>
+      <div class="seg" role="group" aria-label="Modo de selección"><button type="button" data-mode="dia" aria-pressed="${C.mode==="dia"}">Un día</button><button type="button" data-mode="rango" aria-pressed="${C.mode==="rango"}">Rango</button></div>
+      <label class="rg">Desde <select data-r="a">${opt(ra==="ALL"?ini:ra)}</select></label><label class="rg">Hasta <select data-r="b">${opt(rb==="ALL"?fin:rb)}</select></label>
+    </div>
+    <div class="cal-top cal-sub"><span class="cal-hint">${hint}</span>
+      <span class="cal-leg"><span class="cd has ini sw"></span>Inicio del registro: <b>${ini}</b></span>
+      <span class="cal-leg"><span class="cd has sw" style="--lv:20%"></span><span class="cd has sw" style="--lv:80%"></span>Menos → más ${unidad}</span>
+      <span class="cal-leg">${fechas.length} días con revisión · último ${fin}</span></div>
+    <div class="cal-row">${cal}</div></div></details>`;
+  const set=nv=>{ state[key]=nv; C.pend=null; calSync(el); C.onChange(); };
+  el.querySelector("details").addEventListener("toggle",e=>{C.open=e.target.open;});
+  el.onclick=e=>{
+    const t=e.target.closest("button"); if(!t||t.closest("summary")) return;
+    if(t.dataset.all){ set("ALL"); return; }
+    if(t.dataset.mode){ C.mode=t.dataset.mode; C.pend=null; calSync(el); return; }
+    if(t.dataset.m){ const ms=fechas.filter(f=>f.slice(3)===t.dataset.m); if(ms.length) set(ms.length===1?ms[0]:ms[0]+".."+ms[ms.length-1]); return; }
+    const f=t.dataset.v; if(!f) return;
+    if(C.mode==="dia"){ set(state[key]===f?"ALL":f); return; }
+    if(!C.pend){ C.pend=f; calSync(el); return; }
+    let a=C.pend,b=f; if(ymd(a)>ymd(b)) [a,b]=[b,a]; set(a===b?a:a+".."+b);
+  };
+  el.querySelectorAll("select[data-r]").forEach(sl=>sl.onchange=()=>{
+    let a=el.querySelector('select[data-r="a"]').value, b=el.querySelector('select[data-r="b"]').value;
+    if(ymd(a)>ymd(b)) [a,b]=[b,a]; C.mode="rango"; set(a===b?a:a+".."+b);
+  });
 }
 function setupFilters(){
   fechaCal($("#f-fecha"),FECHAS,st,"fecha",render,ROWS,"registros");
@@ -407,7 +463,7 @@ $("#q").oninput = e=>{st.q=e.target.value.toLowerCase(); renderDetail(current())
 const ND = u=> POOL[u]&&POOL[u].nd;
 
 function current(){
-  let rows = ROWS.filter(r=>(st.fecha==="ALL"||r.fr===st.fecha)&&(st.tipo==="ALL"||r.tipo===st.tipo)&&(st.tg==="ALL"||(st.tg==="__"?!r.tg:r.tg===st.tg)));
+  let rows = ROWS.filter(r=>fIn(r.fr,st.fecha)&&(st.tipo==="ALL"||r.tipo===st.tipo)&&(st.tg==="ALL"||(st.tg==="__"?!r.tg:r.tg===st.tg)));
   return rows;
 }
 function latestOnly(rows){ return rows; } // la carga se cuenta por registro de BASE MONITOREO
@@ -497,7 +553,7 @@ function renderCarga(rows){
   const uni = latestOnly(rows);
   $("#carga-hint").textContent = st.fecha==="ALL"
     ? `Gestor = USUARIO CORREGIDO; si está vacío, USUARIO ASIGNADO POR HERRAMIENTA. Se cuenta cada registro de BASE MONITOREO (${uni.length.toLocaleString("es-EC")} registros).`
-    : `Registros de la revisión del ${st.fecha} (${uni.length.toLocaleString("es-EC")} registros).`;
+    : `Registros de la revisión ${st.fecha.includes("..")?"del período "+fLabel(st.fecha):"del "+st.fecha} (${uni.length.toLocaleString("es-EC")} registros).`;
   const by={}; uni.forEach(r=>{if(!r.fin) return; const o=by[r.fin]||(by[r.fin]={u:r.fin,N:0,R:0,corr:0}); r.tipo==="NUEVA"?o.N++:o.R++; if(r.corr===r.fin) o.corr++;});
   const groups=[...GRUPOS,"Fuera del pool"].filter(g=>st.grupo==="ALL"||st.grupo===g);
   const mx=Math.max(1,...Object.values(by).map(o=>o.N+o.R));
@@ -540,7 +596,7 @@ function renderFecha(){
   const y=v=>H-B-(v/top)*(H-B-T); const bw=Math.min(28,(W-L-20)/d.length*0.6); const lstep=Math.max(1,Math.ceil(d.length/10));
   let s=`<svg class="vchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="OTs por fecha de revisión">`;
   for(let i=0;i<=4;i++){const v=step*i; s+=`<line class="gl" x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}"></line><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;}
-  d.forEach((o,i)=>{const cx=L+(W-L-20)/d.length*(i+.5)+10, x=cx-bw/2; const yN=y(o.N), yR=y(o.N+o.R); const sel=st.fecha===o.f;
+  d.forEach((o,i)=>{const cx=L+(W-L-20)/d.length*(i+.5)+10, x=cx-bw/2; const yN=y(o.N), yR=y(o.N+o.R); const sel=fIn(o.f,st.fecha);
     s+=`<g data-tip="${o.f}<br>Registros: ${o.N+o.R}<br>Con resultado registrado: ${o.E}" style="cursor:pointer" data-f="${o.f}">
     <rect x="${cx-bw}" y="${T}" width="${bw*2}" height="${H-B-T}" fill="transparent"></rect>
     ${o.N?`<rect x="${x}" y="${yN}" width="${bw}" height="${H-B-yN}" fill="var(--s-nueva)" opacity="${st.fecha==="ALL"||sel?1:.35}"></rect>`:""}
@@ -549,7 +605,7 @@ function renderFecha(){
     ${i%lstep===0||i===d.length-1&&d.length-1-i>=lstep/2?`<text x="${cx}" y="${H-B+16}" text-anchor="middle">${short(o.f)}</text>`:""}${o.E&&d.length<=10?`<text x="${cx}" y="${H-B+29}" text-anchor="middle" style="fill:var(--crit-ink)">${o.E} revisadas</text>`:""}</g>`;});
   s+=`<line class="bl" x1="${L}" x2="${W-10}" y1="${H-B}" y2="${H-B}"></line></svg>`;
   $("#porfecha").innerHTML=s+`<p class="hint">Toque una columna para filtrar el tablero por esa fecha.</p>`;
-  $("#porfecha").querySelectorAll("g[data-f]").forEach(g=>g.onclick=()=>{st.fecha=st.fecha===g.dataset.f?"ALL":g.dataset.f; $("#f-fecha").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===st.fecha)); render();});
+  $("#porfecha").querySelectorAll("g[data-f]").forEach(g=>g.onclick=()=>{st.fecha=st.fecha===g.dataset.f?"ALL":g.dataset.f; calSync($("#f-fecha")); render();});
 }
 
 /* ---------- Aging ---------- */
@@ -759,11 +815,11 @@ function setDataTA(T){
   /* Si USUARIO CORREGIDO trae una nota que menciona a un gestor del pool (p. ej. "debería ser de vcarrillo"), se toma ese gestor. */
   T.rows.forEach(r=>{ if(!r.corr&&r.cnote){ const hit=(r.cnote.toLowerCase().match(/[a-z0-9_.]+/g)||[]).filter(w=>POOL[w]); const u=[...new Set(hit)]; if(u.length===1){ r.corr=u[0]; r.corrNota=true; r.fin=r.corr; } } });
   TA=T; TROWS=T.rows; TFECHAS=T.fechas; TORD=Object.fromEntries(TFECHAS.map((f,i)=>[f,i]));
-  if(sta.fecha!=="ALL"&&!TFECHAS.includes(sta.fecha)) sta.fecha="ALL";
+  if(!fValid(sta.fecha,TFECHAS)) sta.fecha="ALL";
 }
 const gOKta = r=> sta.grupo==="ALL" || grp(r.fin)===sta.grupo || grp(r.herr)===sta.grupo || grp(r.corr)===sta.grupo;
 function curTA(){
-  return TROWS.filter(r=>(sta.fecha==="ALL"||r.fr===sta.fecha)&&(sta.proc==="ALL"||(sta.proc==="__"?!r.proc:r.proc===sta.proc))&&(sta.ba==="ALL"||(sta.ba==="__"?!r.ba:r.ba===sta.ba))&&gOKta(r));
+  return TROWS.filter(r=>fIn(r.fr,sta.fecha)&&(sta.proc==="ALL"||(sta.proc==="__"?!r.proc:r.proc===sta.proc))&&(sta.ba==="ALL"||(sta.ba==="__"?!r.ba:r.ba===sta.ba))&&gOKta(r));
 }
 function segTA(el,opts,key){
   el.innerHTML = opts.map(([v,l])=>`<button type="button" data-v="${esc(v)}" aria-pressed="${sta[key]===v}">${l}</button>`).join("");
@@ -864,16 +920,16 @@ function renderFechaTA(){
   const y=v=>H-B-(v/top)*(H-B-T), slot=(W-L-10)/Math.max(1,d.length), bw=Math.min(28,slot*0.6);
   let s=`<svg class="vchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tareas por fecha de revisión">`;
   for(let i=0;i<=4;i++){const v=step*i; s+=`<line class="gl" x1="${L}" x2="${W-6}" y1="${y(v)}" y2="${y(v)}"></line><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;}
-  d.forEach((o,i)=>{const cx=L+slot*(i+.5), x=cx-bw/2, sel=sta.fecha==="ALL"||sta.fecha===o.f; let acc=0, segs="";
+  d.forEach((o,i)=>{const cx=L+slot*(i+.5), x=cx-bw/2, sel=fIn(o.f,sta.fecha); let acc=0, segs="";
     RES_TA.forEach(([k,,c],j)=>{const v=o.c[k]; if(!v) return; const y1=y(acc+v), y0=y(acc); const isTop=!RES_TA.slice(j+1).some(([kk])=>o.c[kk]); segs+=`<rect x="${x}" y="${y1}" width="${bw}" height="${Math.max(y0-y1-(isTop?0:1.5),0.5)}" ${isTop?'rx="3"':""} fill="${c}" opacity="${sel?1:.35}"></rect>`; acc+=v;});
     s+=`<g data-tip="${o.f}<br>${o.n} tareas<br>${RES_TA.map(([k,l])=>l+": "+o.c[k]).join("<br>")}" style="cursor:pointer" data-f="${o.f}"><rect x="${cx-slot/2}" y="${T}" width="${slot}" height="${H-B-T}" fill="transparent"></rect>${segs}${o.n&&d.length<=16?`<text class="vt" x="${cx}" y="${y(o.n)-5}" text-anchor="middle">${o.n}</text>`:""}${i%Math.max(1,Math.ceil(d.length/10))===0?`<text x="${cx}" y="${H-B+15}" text-anchor="middle">${short(o.f)}</text>`:""}</g>`;});
   s+=`<line class="bl" x1="${L}" x2="${W-6}" y1="${H-B}" y2="${H-B}"></line></svg>`;
   $("#ta-porfecha").innerHTML=s+`<div class="legend">${legendTA()}</div>`;
-  $("#ta-porfecha").querySelectorAll("g[data-f]").forEach(g=>g.onclick=()=>{sta.fecha=sta.fecha===g.dataset.f?"ALL":g.dataset.f; $("#ta-f-fecha").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===sta.fecha)); renderTA();});
+  $("#ta-porfecha").querySelectorAll("g[data-f]").forEach(g=>g.onclick=()=>{sta.fecha=sta.fecha===g.dataset.f?"ALL":g.dataset.f; calSync($("#ta-f-fecha")); renderTA();});
 }
 
 function renderCargaTA(rows){
-  $("#ta-carga-hint").textContent=`Gestor = USUARIO CORREGIDO; si está vacío, USUARIO ASIGNADO POR HERRAMIENTA. Se cuenta cada tarea de TAREAS MONITOREO (${fN(rows.length)} tareas)${sta.fecha!=="ALL"?" del "+sta.fecha:""}.`;
+  $("#ta-carga-hint").textContent=`Gestor = USUARIO CORREGIDO; si está vacío, USUARIO ASIGNADO POR HERRAMIENTA. Se cuenta cada tarea de TAREAS MONITOREO (${fN(rows.length)} tareas)${sta.fecha!=="ALL"?" · período "+fLabel(sta.fecha):""}.`;
   $("#ta-leg2").innerHTML=legendTA();
   const by={}; rows.forEach(r=>{if(!r.fin) return; const o=by[r.fin]||(by[r.fin]={u:r.fin,n:0,c:{CORRECTA:0,INCORRECTA:0,"FUERA DE ALCANCE":0,"EN REVISIÓN":0},corr:0}); o.n++; o.c[r.res]++; if(r.corr&&r.corr===r.fin)o.corr++;});
   const groups=[...GRUPOS,"Fuera del pool"].filter(g=>sta.grupo==="ALL"||sta.grupo===g);
